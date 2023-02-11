@@ -19,17 +19,17 @@ class ImageSeeder extends Seeder
         DB::table('images')->insert([
             [
                 'name' => Str::random(10),
-                'file' => asset('images/surplus.png'),
+                'file' => 'images/product_images/surplus.png',
                 'enable' => TRUE,
             ],
             [
                 'name' => Str::random(10),
-                'file' => env('BASE_URL') . asset('images/surplus.png'),
+                'file' => 'images/product_images/surplus.png',
                 'enable' => TRUE,
             ],
             [
                 'name' => Str::random(10),
-                'file' => asset('images/surplus.png'),
+                'file' => 'images/product_images/surplus.png',
                 'enable' => TRUE,
             ],
         ]);

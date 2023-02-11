@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
+use App\Models\Image;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
-class CategoryController extends Controller
+class ImageController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -18,7 +19,7 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = DB::table('categories')->whereNull('deleted_at')->get();
+        $categories = DB::table('images')->whereNull('deleted_at')->get();
         
         return response()->json([
             'success' => true,
@@ -34,9 +35,11 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        return $request->all();
         $validator = Validator::make($request->all(), [
-            'name'      => 'required|unique:categories,name',
-            'enable'    => 'required',
+            'name' => 'required',
+            'file' => 'required|mimes:jpeg,jpg,png|max:2048',
+            'enable' => 'required',            
         ]);
 
         if ($validator->fails()) {
@@ -49,21 +52,35 @@ class CategoryController extends Controller
         DB::beginTransaction();
 
         try {
-            $category = new Category;
+            $image = new Image;
 
-            $category->name     = $request->name;
-            $category->enable   = $request->enable;
-            $category->save();
+            $dir = 'images/product_images/';
+            if (!file_exists($dir)) {
+                mkdir($dir, 0777, true);
+            }
+
+            if ($request->hasFile('file')) {
+                $file     = $request->file('file');
+                $file_name = Carbon::now()->toDateString() . '-' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $file->move($dir, $file_name);
+                $image->file = $dir.$file_name;
+            } else {
+                $image->file = 'images/product_images/surplus.png';
+            }
+
+            $image->name    = $request->name;
+            $image->enable  = $request->enable;
+            $image->save();
 
             $response = [
                 'success'   => true,
-                'data'      => $category
+                'data'      => $image
             ];
         } catch(\Exception $e) {
             DB::rollback();
             Log::error($request->route()->getName()." : ".$e->getMessage());
 
-            $response = ['success'  => false, 'data' => 'Failed to create category'];
+            $response = ['success'  => false, 'data' => 'Failed to create image'];
         }
 
         DB::commit();
@@ -79,12 +96,12 @@ class CategoryController extends Controller
      */
     public function show($id)
     {
-        $category = Category::where('id', $id)->with('category_product')->first();
+        $image = Image::where('id', $id)->first();
 
-        if ($category) {
+        if ($image) {
             return response()->json([
                 'success'   => true,
-                'data'      => $category,
+                'data'      => $image,
             ], 200);
         }
 
@@ -104,8 +121,7 @@ class CategoryController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'name'      => 'nullable',
-            'enable'    => 'nullable',
+            'file' => 'nullable|mimes:jpeg,jpg,png|max:2048',          
         ]);
 
         if ($validator->fails()) {
@@ -115,24 +131,39 @@ class CategoryController extends Controller
             ], 400);
         }
 
-        $category = Category::findOrFail($id);
-
+        $image = Image::findOrFail($id);
+        
         DB::beginTransaction();
 
         try {
-            $category->name   = $request->name;
-            $category->enable  = $request->enable;
-            $category->save();
+            $dir = 'images/product_images/';
+            if (!file_exists($dir)) {
+                mkdir($dir, 0777, true);
+            }
+
+            if ($request->hasFile('file')) {
+                $file     = $request->file('file');
+                $file_name = Carbon::now()->toDateString() . '-' . uniqid() . '.' . $file->getClientOriginalExtension();
+                if (file_exists($image->file) && $image->file != 'images/product_images/surplus.png') {
+                    unlink($image->file);
+                }
+                $file->move($dir, $file_name);
+                $image->file = $dir . $file_name;
+            }
+
+            $image->name    = $request->name;
+            $image->enable  = $request->enable;
+            $image->save();
 
             $response = [
-                'success'  => true,
-                'data' => $category
+                'success'   => true,
+                'data'      => $image
             ];
         } catch(\Exception $e) {
             DB::rollback();
             Log::error($request->route()->getName()." : ".$e->getMessage());
 
-            $response = ['success'  => true, 'data' => 'Failed to update category'];
+            $response = ['success'  => false, 'data' => 'Failed to update image'];
         }
 
         DB::commit();
@@ -151,24 +182,24 @@ class CategoryController extends Controller
         DB::beginTransaction();
 
         try {
-            $category = Category::findOrFail($id);
-            if ($category->category_product()->exists()) {
-                $response = ['success'  => true, 'data' => 'This category has product'];
-                goto dependent;
+            $image = Image::findOrFail($id);
+            
+            if (file_exists($image->image)) {
+                if ($image->image != 'images/product_images/surplus.png') {
+                    unlink($image->image);
+                }
             }
-            $category->delete();
+            $image->delete();
 
-            $response = ['success'  => true, 'data' => 'Category deleted successfully'];
+            $response = ['success'  => false, 'data' => 'Image deleted successfully'];
         } catch(\Exception $e) {
-            \DB::rollback();
-            \Log::error(request()->route()->getName()." : ".$e->getMessage());
+            DB::rollback();
+            Log::error(request()->route()->getName()." : ".$e->getMessage());
 
-            $response = ['success'  => true, 'data' => 'Failed to delete category'];
+            $response = ['success'  => false, 'data' => 'Failed to delete image'];
         }
 
         DB::commit();
-
-        dependent:
 
         return response()->json($response);
     }
