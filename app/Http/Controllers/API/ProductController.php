@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\CategoryProduct;
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
@@ -14,17 +18,14 @@ class ProductController extends Controller
      */
     public function index()
     {
-        //
-    }
+        $products = Product::whereNull('deleted_at')->with([
+            'category_product', 'product_image'
+        ])->get();
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        return response()->json([
+            'success' => true,
+            'data' => $products,
+        ]);
     }
 
     /**
@@ -35,7 +36,105 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $image_ids = $request->image_ids ? json_decode($request->image_ids) : false;
+
+        $validator = Validator::make($request->all(), [
+            'name'          => 'required|unique:categories,name',
+            'description'   => 'required',
+            'category_ids'   => 'required',
+            'enable'        => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success'   => false,
+                'data'      => $validator->errors()
+            ], 400);
+        }
+
+        $category_ids = json_decode($request->category_ids);
+        $valid_category_ids = [];
+
+        foreach ($category_ids as $id) {
+            $exists = DB::table('categories')
+                ->whereNull('deleted_at')
+                ->where('id', $id)
+                ->exists();
+            
+            if ($exists) {
+                $valid_category_ids[] = $id;
+            }
+        }
+
+        if (!$valid_category_ids) {
+            return response()->json([
+                'success'   => false,
+                'data'      => 'No valid category found'
+            ], 400);
+        }
+
+        $image_ids = json_decode($request->image_ids);
+        $valid_image_ids = [];
+
+        foreach ($image_ids as $id) {
+            $exists = DB::table('images')
+                ->whereNull('deleted_at')
+                ->where('id', $id)
+                ->exists();
+            
+            if ($exists) {
+                $valid_image_ids[] = $id;
+            }
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $product = new Product;
+
+            $product->name          = $request->name;
+            $product->description   = $request->description;
+            $product->enable        = $request->enable;
+            $product->save();
+
+            $category_insert = [];
+            foreach ($valid_category_ids as $id) {
+                $temp = [
+                    'product_id' => $product->id,
+                    'category_id' => $id
+                ];
+                $category_insert[] = $temp;
+            }
+
+            DB::table('category_products')->insert($category_insert);
+
+            if (!$valid_image_ids) {
+                $image_insert = [];
+                foreach ($valid_image_ids as $id) {
+                    $temp = [
+                        'product_id' => $product->id,
+                        'image_id' => $id
+                    ];
+                    $image_insert[] = $temp;
+                }
+
+                DB::table('product_images')->insert($image_insert);
+            }
+
+            $response = [
+                'success'   => true,
+                'data'      => $product
+            ];
+        } catch(\Exception $e) {
+            DB::rollback();
+            Log::error($request->route()->getName()." : ".$e->getMessage());
+
+            $response = ['success'  => false, 'data' => 'Failed to create product'];
+        }
+
+        DB::commit();
+
+        return response()->json($response);
     }
 
     /**
@@ -46,18 +145,21 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        //
-    }
+        $product = Product::where('id', $id)
+            ->with(['category_product', 'product_image'])
+            ->first();
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
+        if ($product) {
+            return response()->json([
+                'success'   => true,
+                'data'      => $product,
+            ], 200);
+        }
+
+        return response()->json([
+            'success'   => false,
+            'data'      => 'Data not found',
+        ], 404);
     }
 
     /**
@@ -69,7 +171,105 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $image_ids = $request->image_ids ? json_decode($request->image_ids) : false;
+
+        $validator = Validator::make($request->all(), [
+            'name'          => 'required|unique:categories,name',
+            'description'   => 'required',
+            'category_ids'   => 'required',
+            'enable'        => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success'   => false,
+                'data'      => $validator->errors()
+            ], 400);
+        }
+
+        $category_ids = json_decode($request->category_ids);
+        $valid_category_ids = [];
+
+        foreach ($category_ids as $id) {
+            $exists = DB::table('categories')
+                ->whereNull('deleted_at')
+                ->where('id', $id)
+                ->exists();
+            
+            if ($exists) {
+                $valid_category_ids[] = $id;
+            }
+        }
+
+        if (!$valid_category_ids) {
+            return response()->json([
+                'success'   => false,
+                'data'      => 'No valid category found'
+            ], 400);
+        }
+
+        $image_ids = json_decode($request->image_ids);
+        $valid_image_ids = [];
+
+        foreach ($image_ids as $id) {
+            $exists = DB::table('images')
+                ->whereNull('deleted_at')
+                ->where('id', $id)
+                ->exists();
+            
+            if ($exists) {
+                $valid_image_ids[] = $id;
+            }
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $product = Product::findOrFail($id);
+
+            $product->name          = $request->name;
+            $product->description   = $request->description;
+            $product->enable        = $request->enable;
+            $product->save();
+
+            $category_insert = [];
+            foreach ($valid_category_ids as $id) {
+                $temp = [
+                    'product_id' => $product->id,
+                    'category_id' => $id
+                ];
+                $category_insert[] = $temp;
+            }
+
+            DB::table('category_products')->insert($category_insert);
+
+            if (!$valid_image_ids) {
+                $image_insert = [];
+                foreach ($valid_image_ids as $id) {
+                    $temp = [
+                        'product_id' => $product->id,
+                        'image_id' => $id
+                    ];
+                    $image_insert[] = $temp;
+                }
+
+                DB::table('product_images')->insert($image_insert);
+            }
+
+            $response = [
+                'success'   => true,
+                'data'      => $product
+            ];
+        } catch(\Exception $e) {
+            DB::rollback();
+            Log::error($request->route()->getName()." : ".$e->getMessage());
+
+            $response = ['success'  => false, 'data' => 'Failed to create product'];
+        }
+
+        DB::commit();
+
+        return response()->json($response);
     }
 
     /**
@@ -80,6 +280,24 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        //
+        DB::beginTransaction();
+
+        try {
+            $product = Product::findOrFail($id);
+            $product->delete();
+
+            $response = ['success'  => false, 'data' => 'Product deleted successfully'];
+            DB::rollback();
+        } catch(\Exception $e) {
+            Log::error(request()->route()->getName()." : ".$e->getMessage());
+
+            $response = ['success'  => false, 'data' => 'Failed to delete delete'];
+        }
+
+        DB::commit();
+        
+        dependent:
+
+        return response()->json($response);
     }
 }

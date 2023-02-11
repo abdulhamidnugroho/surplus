@@ -184,11 +184,17 @@ class ImageController extends Controller
         try {
             $image = Image::findOrFail($id);
             
+            if ($image->product_image()->exists()) {
+                $response = ['success'  => true, 'data' => 'This image used by product'];
+                goto dependent;
+            }
+
             if (file_exists($image->image)) {
                 if ($image->image != 'images/product_images/surplus.png') {
                     unlink($image->image);
                 }
             }
+            
             $image->delete();
 
             $response = ['success'  => false, 'data' => 'Image deleted successfully'];
@@ -200,6 +206,8 @@ class ImageController extends Controller
         }
 
         DB::commit();
+        
+        dependent:
 
         return response()->json($response);
     }
