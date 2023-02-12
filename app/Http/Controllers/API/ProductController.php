@@ -40,7 +40,7 @@ class ProductController extends Controller
         $validator = Validator::make($request->all(), [
             'name'          => 'required|unique:categories,name',
             'description'   => 'required',
-            'category_ids'   => 'required',
+            'category_ids'  => 'required',
             'enable'        => 'required',
         ]);
 
@@ -75,14 +75,16 @@ class ProductController extends Controller
         $image_ids = json_decode($request->image_ids);
         $valid_image_ids = [];
 
-        foreach ($image_ids as $id) {
-            $exists = DB::table('images')
-                ->whereNull('deleted_at')
-                ->where('id', $id)
-                ->exists();
-            
-            if ($exists) {
-                $valid_image_ids[] = $id;
+        if ($image_ids) {
+            foreach ($image_ids as $id) {
+                $exists = DB::table('images')
+                    ->whereNull('deleted_at')
+                    ->where('id', $id)
+                    ->exists();
+                
+                if ($exists) {
+                    $valid_image_ids[] = $id;
+                }
             }
         }
 
@@ -208,14 +210,16 @@ class ProductController extends Controller
         $image_ids = json_decode($request->image_ids);
         $valid_image_ids = [];
 
-        foreach ($image_ids as $image_id) {
-            $exists = DB::table('images')
-                ->whereNull('deleted_at')
-                ->where('id', $image_id)
-                ->exists();
-            
-            if ($exists) {
-                $valid_image_ids[] = $image_id;
+        if ($image_ids) {
+            foreach ($image_ids as $image_id) {
+                $exists = DB::table('images')
+                    ->whereNull('deleted_at')
+                    ->where('id', $image_id)
+                    ->exists();
+                
+                if ($exists) {
+                    $valid_image_ids[] = $image_id;
+                }
             }
         }
 
@@ -245,7 +249,7 @@ class ProductController extends Controller
 
             DB::table('category_products')->insert($category_insert);
 
-            if (!$valid_image_ids) {
+            if ($valid_image_ids) {
                 $image_insert = [];
                 foreach ($valid_image_ids as $id) {
                     $temp = [

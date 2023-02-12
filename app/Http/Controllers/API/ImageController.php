@@ -36,7 +36,6 @@ class ImageController extends Controller
      */
     public function store(Request $request)
     {
-        return $request->all();
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'file' => 'required|mimes:jpeg,jpg,png|max:2048',
@@ -61,7 +60,7 @@ class ImageController extends Controller
             }
 
             if ($request->hasFile('file')) {
-                $file     = $request->file('file');
+                $file      = $request->file('file');
                 $file_name = Carbon::now()->toDateString() . '-' . uniqid() . '.' . $file->getClientOriginalExtension();
                 $file->move($dir, $file_name);
                 $image->file = $dir.$file_name;
@@ -143,7 +142,7 @@ class ImageController extends Controller
             }
 
             if ($request->hasFile('file')) {
-                $file     = $request->file('file');
+                $file      = $request->file('file');
                 $file_name = Carbon::now()->toDateString() . '-' . uniqid() . '.' . $file->getClientOriginalExtension();
                 if (file_exists($image->file) && $image->file != 'images/product_images/surplus.png') {
                     unlink($image->file);
