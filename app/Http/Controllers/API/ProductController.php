@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\CategoryProduct;
 use App\Models\Product;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
@@ -36,8 +37,6 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $image_ids = $request->image_ids ? json_decode($request->image_ids) : false;
-
         $validator = Validator::make($request->all(), [
             'name'          => 'required|unique:categories,name',
             'description'   => 'required',
@@ -108,7 +107,7 @@ class ProductController extends Controller
 
             DB::table('category_products')->insert($category_insert);
 
-            if (!$valid_image_ids) {
+            if ($valid_image_ids) {
                 $image_insert = [];
                 foreach ($valid_image_ids as $id) {
                     $temp = [
@@ -125,7 +124,7 @@ class ProductController extends Controller
                 'success'   => true,
                 'data'      => $product
             ];
-        } catch(\Exception $e) {
+        } catch(Exception $e) {
             DB::rollback();
             Log::error($request->route()->getName()." : ".$e->getMessage());
 
@@ -171,8 +170,6 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $image_ids = $request->image_ids ? json_decode($request->image_ids) : false;
-
         $validator = Validator::make($request->all(), [
             'name'          => 'required|unique:categories,name',
             'description'   => 'required',
@@ -190,14 +187,14 @@ class ProductController extends Controller
         $category_ids = json_decode($request->category_ids);
         $valid_category_ids = [];
 
-        foreach ($category_ids as $id) {
+        foreach ($category_ids as $category_id) {
             $exists = DB::table('categories')
                 ->whereNull('deleted_at')
-                ->where('id', $id)
+                ->where('id', $category_id)
                 ->exists();
             
             if ($exists) {
-                $valid_category_ids[] = $id;
+                $valid_category_ids[] = $category_id;
             }
         }
 
@@ -211,21 +208,26 @@ class ProductController extends Controller
         $image_ids = json_decode($request->image_ids);
         $valid_image_ids = [];
 
-        foreach ($image_ids as $id) {
+        foreach ($image_ids as $image_id) {
             $exists = DB::table('images')
                 ->whereNull('deleted_at')
-                ->where('id', $id)
+                ->where('id', $image_id)
                 ->exists();
             
             if ($exists) {
-                $valid_image_ids[] = $id;
+                $valid_image_ids[] = $image_id;
             }
         }
 
         DB::beginTransaction();
 
         try {
-            $product = Product::findOrFail($id);
+            $product = Product::find($id);
+
+            if (!$product) {
+                $response = ['success'  => false, 'data' => 'Product not found'];
+                goto not_found;
+            }
 
             $product->name          = $request->name;
             $product->description   = $request->description;
@@ -260,14 +262,16 @@ class ProductController extends Controller
                 'success'   => true,
                 'data'      => $product
             ];
-        } catch(\Exception $e) {
+        } catch(Exception $e) {
             DB::rollback();
             Log::error($request->route()->getName()." : ".$e->getMessage());
 
-            $response = ['success'  => false, 'data' => 'Failed to create product'];
+            $response = ['success'  => false, 'data' => 'Failed to update product'];
         }
 
         DB::commit();
+
+        not_found:
 
         return response()->json($response);
     }
@@ -287,11 +291,11 @@ class ProductController extends Controller
             $product->delete();
 
             $response = ['success'  => false, 'data' => 'Product deleted successfully'];
+        } catch(Exception $e) {
             DB::rollback();
-        } catch(\Exception $e) {
             Log::error(request()->route()->getName()." : ".$e->getMessage());
 
-            $response = ['success'  => false, 'data' => 'Failed to delete delete'];
+            $response = ['success'  => false, 'data' => 'Failed to delete product'];
         }
 
         DB::commit();

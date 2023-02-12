@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Image;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -76,7 +77,7 @@ class ImageController extends Controller
                 'success'   => true,
                 'data'      => $image
             ];
-        } catch(\Exception $e) {
+        } catch(Exception $e) {
             DB::rollback();
             Log::error($request->route()->getName()." : ".$e->getMessage());
 
@@ -159,7 +160,7 @@ class ImageController extends Controller
                 'success'   => true,
                 'data'      => $image
             ];
-        } catch(\Exception $e) {
+        } catch(Exception $e) {
             DB::rollback();
             Log::error($request->route()->getName()." : ".$e->getMessage());
 
@@ -198,7 +199,7 @@ class ImageController extends Controller
             $image->delete();
 
             $response = ['success'  => false, 'data' => 'Image deleted successfully'];
-        } catch(\Exception $e) {
+        } catch(Exception $e) {
             DB::rollback();
             Log::error(request()->route()->getName()." : ".$e->getMessage());
 
