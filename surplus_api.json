@@ -1,0 +1,390 @@
+{
+	"info": {
+		"_postman_id": "6c6ce8ce-f21c-4085-a65c-61d7b783d004",
+		"name": "Development",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "10175988"
+	},
+	"item": [
+		{
+			"name": "Category",
+			"item": [
+				{
+					"name": "Get Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://surplus.test/api/categories",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Category",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Category Test\",\n    \"enable\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://surplus.test/api/categories",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Category (Detail)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://surplus.test/api/categories/1",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"categories",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Category",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://surplus.test/api/categories/1",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"categories",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Category",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://surplus.test/api/categories/2",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"categories",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Image",
+			"item": [
+				{
+					"name": "Get Images",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://surplus.test/api/images",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"images"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Image",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Images 2",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/Users/abdulhamid/Downloads/deg10.png"
+								},
+								{
+									"key": "enable",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://surplus.test/api/images",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"images"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Image (Detail)",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Update Image",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Image 4 Updated",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/Users/abdulhamid/Downloads/Moby-logo.png",
+									"disabled": true
+								},
+								{
+									"key": "enable",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://surplus.test/api/images/update/4",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"images",
+								"update",
+								"4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Image",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://surplus.test/api/images/4",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"images",
+								"4"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Product",
+			"item": [
+				{
+					"name": "Get Product",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://surplus.test/api/products",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Product Test Cat Image\",\n    \"description\": \"This is description\",\n    \"category_ids\": \"[1, 2, 3, 5]\",\n    \"enable\": 1,\n    \"image_ids\": \"[1, 2, 3]\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://surplus.test/api/products",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product (Detail)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://surplus.test/api/products/3",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"products",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Product Test Cat X Image updated\",\n    \"description\": \"This is description\",\n    \"category_ids\": \"[1, 2, 3, 5]\",\n    \"enable\": 1,\n    \"image_ids\": \"[1, 2, 3]\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://surplus.test/api/products/99",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"products",
+								"99"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://surplus.test/api/products/33",
+							"protocol": "http",
+							"host": [
+								"surplus",
+								"test"
+							],
+							"path": [
+								"api",
+								"products",
+								"33"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
